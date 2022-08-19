@@ -1,0 +1,36 @@
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: 0 16 * * * 
+  workflow_dispatch:
+  
+env:
+  # 获取数据后使用此 git 用户部署到 github 仓库
+  GIT_USER: lylelove
+  # 获取数据后使用此 git 邮箱部署到 github 仓库
+  GIT_EMAIL: lylelove@163.com
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    if: github.event.repository.owner.id == github.event.sender.id
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        
+      - name: pythonupdate
+        run: |
+          mkdir -p data/json
+          python3 today_get.py 
+          python3 today_data_load.py
+          git config --global user.name $GIT_USER
+          git config --global user.email $GIT_EMAIL
+          git add -A
+          git commit -m 'python_update'
+          git push origin main
